@@ -131,6 +131,15 @@ public class ChangePackage extends Recipe {
         public J visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
             J f = super.visitFieldAccess(fieldAccess, ctx);
 
+            J.FieldAccess visitedFieldAccess = (J.FieldAccess) f;
+            if (visitedFieldAccess.getTarget() instanceof J.Identifier) {
+                if (((J.Identifier) visitedFieldAccess.getTarget()).getSimpleName().equals(oldPackageName)) {
+                    JavaType.ShallowClass newType = JavaType.ShallowClass.build(newPackageName + "." + ((J.FieldAccess) f).getName().getSimpleName());
+                    return TypeTree.build(((JavaType.FullyQualified) newType).getFullyQualifiedName())
+                            .withPrefix(f.getPrefix());
+                }
+            }
+
             if (((J.FieldAccess) f).isFullyQualifiedClassReference(oldPackageName)) {
                 Cursor parent = getCursor().getParent();
                 if (parent != null &&
